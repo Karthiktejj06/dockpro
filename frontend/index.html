@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DockQuiz - Premium Microservices Online Quiz Platform</title>
+  <!-- Google Font: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Toast notification system -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Background Animated Orbs -->
+  <div class="background-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Header & Navigation -->
+  <header>
+    <div class="nav-container">
+      <div class="logo" onclick="app.showSection('dashboard')">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Dock<span>Quiz</span></span>
+      </div>
+      <div class="status-badge connecting" id="connection-status">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-wrapper">
+    
+    <!-- DASHBOARD SECTION -->
+    <section id="dashboard-section" class="section-card active">
+      <div class="dashboard-header">
+        <div class="user-greeting">
+          <h1>DevOps &amp; Microservices Assessments</h1>
+          <p>Sharpen your engineering skills. No signup or accounts required.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Quizzes Column -->
+        <div class="dash-column">
+          <h2 class="column-title"><i class="fa-solid fa-cubes"></i> Available Assessments</h2>
+          <div id="quiz-list" class="cards-list">
+            <!-- Dynamically populated -->
+            <div class="loading-state">
+              <i class="fa-solid fa-spinner fa-spin"></i> Loading available quizzes...
+            </div>
+          </div>
+        </div>
+
+        <!-- History Column -->
+        <div class="dash-column">
+          <h2 class="column-title"><i class="fa-solid fa-clock-rotate-left"></i> Your Recent Scores</h2>
+          <div id="attempt-history" class="cards-list">
+            <!-- Dynamically populated -->
+            <div class="empty-state">
+              <i class="fa-solid fa-clipboard-check"></i>
+              No recent attempts yet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ ATTEMPT INTERFACE -->
+    <section id="quiz-section" class="section-card hidden">
+      <div class="quiz-info-header">
+        <div>
+          <h1 id="active-quiz-title">Loading Quiz...</h1>
+          <p id="active-quiz-desc">Ready to solve questions</p>
+        </div>
+        <div class="timer-card">
+          <i class="fa-solid fa-hourglass-half"></i>
+          <span id="quiz-timer">00:00</span>
+        </div>
+      </div>
+
+      <!-- Quiz progress bar -->
+      <div class="quiz-progress-wrapper">
+        <div class="progress-labels">
+          <span>Question <span id="current-question-num">1</span> of <span id="total-questions-num">5</span></span>
+          <span><span id="progress-percent">20</span>% Complete</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="progress-bar-fill" style="width: 20%"></div>
+        </div>
+      </div>
+
+      <!-- Question Box -->
+      <div class="question-container">
+        <div id="question-text" class="question-text">Question body will appear here.</div>
+        <div id="options-container" class="options-container">
+          <!-- Options dynamically generated -->
+        </div>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="quiz-navigation">
+        <button id="prev-question-btn" class="btn secondary-btn" onclick="app.prevQuestion()"><i class="fa-solid fa-arrow-left"></i> Previous</button>
+        <button id="next-question-btn" class="btn primary-btn" onclick="app.nextQuestion()">Next <i class="fa-solid fa-arrow-right"></i></button>
+        <button id="submit-quiz-btn" class="btn accent-btn hidden" onclick="app.submitQuiz()">Submit Quiz <i class="fa-solid fa-check-double"></i></button>
+      </div>
+    </section>
+
+    <!-- QUIZ RESULTS SCREEN -->
+    <section id="results-section" class="section-card hidden">
+      <div class="results-header">
+        <div class="celebration-icon"><i class="fa-solid fa-medal"></i></div>
+        <h1>Assessment Evaluated!</h1>
+        <p>Your performance breakdown is ready below</p>
+      </div>
+
+      <div class="results-summary">
+        <!-- Radial progress meter -->
+        <div class="score-circle">
+          <div class="score-val" id="score-percentage">80%</div>
+          <div class="score-label">Final Grade</div>
+        </div>
+        <div class="score-meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Correct Answers</span>
+            <span class="meta-val text-success" id="correct-count">4</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Total Questions</span>
+            <span class="meta-val" id="total-count">5</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Total Points</span>
+            <span class="meta-val text-accent" id="points-earned">40 pts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn primary-btn" onclick="app.showSection('dashboard')"><i class="fa-solid fa-house"></i> Return to Assessments</button>
+        <button class="btn secondary-btn" onclick="app.restartActiveQuiz()"><i class="fa-solid fa-rotate-right"></i> Retake Assessment</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <p>&copy; 2026 Thota Mohan Karthik Tej (12300587). Microservices DevOps Project.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

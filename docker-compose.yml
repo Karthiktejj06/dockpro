@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # MongoDB database shared by backend services (isolated via separate logical databases)
+  mongodb:
+    image: mongo:latest
+    container_name: quiz-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - quiz-network
+
+  # User service for user registration and authentication
+  user-service:
+    build: ./user-service
+    container_name: quiz-user-service
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/users_db
+      - JWT_SECRET=super_secret_quiz_token_key_2026_xyz
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+    networks:
+      - quiz-network
+
+  # Quiz service for quiz and question management
+  quiz-service:
+    build: ./quiz-service
+    container_name: quiz-quiz-service
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongodb:27017/quizzes_db
+      - JWT_SECRET=super_secret_quiz_token_key_2026_xyz
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongodb
+    networks:
+      - quiz-network
+
+  # Result service for quiz submissions and scoring
+  result-service:
+    build: ./result-service
+    container_name: quiz-result-service
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/results_db
+      - JWT_SECRET=super_secret_quiz_token_key_2026_xyz
+      - QUIZ_SERVICE_URL=http://quiz-service:5002/api/quizzes
+    ports:
+      - "5003:5003"
+    depends_on:
+      - mongodb
+      - quiz-service
+    networks:
+      - quiz-network
+
+  # Frontend static web application served via Nginx
+  frontend:
+    build: ./frontend
+    ports:
+     - "3000:80"
+    container_name: quiz-frontend
+    depends_on:
+      - user-service
+      - quiz-service
+      - result-service
+    networks:
+      - quiz-network
+
+  # Nginx API Gateway directing external requests
+  gateway:
+    build: ./gateway
+    container_name: quiz-gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - user-service
+      - quiz-service
+      - result-service
+    networks:
+      - quiz-network
+
+networks:
+  quiz-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

@@ -1,0 +1,71 @@
+name: Microservices CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-microservices:
+    name: Run Microservices Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: |
+            user-service/package.json
+            quiz-service/package.json
+            result-service/package.json
+
+      # Test User Service
+      - name: Install & Test User Service
+        run: |
+          cd user-service
+          npm install
+          npm run test -- --passWithNoTests
+
+      # Test Quiz Service
+      - name: Install & Test Quiz Service
+        run: |
+          cd quiz-service
+          npm install
+          npm run test -- --passWithNoTests
+
+      # Test Result Service
+      - name: Install & Test Result Service
+        run: |
+          cd result-service
+          npm install
+          npm run test -- --passWithNoTests
+
+  build-containers:
+    name: Build & Verify Docker Images
+    needs: test-microservices
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build User Service Image
+        run: docker build -t quiz-user-service ./user-service
+
+      - name: Build Quiz Service Image
+        run: docker build -t quiz-quiz-service ./quiz-service
+
+      - name: Build Result Service Image
+        run: docker build -t quiz-result-service ./result-service
+
+      - name: Build Frontend Image
+        run: docker build -t quiz-frontend ./frontend
+
+      - name: Build Gateway Image
+        run: docker build -t quiz-gateway ./gateway
